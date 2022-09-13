@@ -36,12 +36,9 @@ class Crawler:
         return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
 
     def collect_product_list(self):
-        print(self.total_page_to_crawl())
         for page in range(1, self.total_page_to_crawl()):
-            print(page)
             self.full_path = self.base_url + self.query_string.format(page)
             self.driver = self.selenium.get_driver()
-            print(self.full_path)
             self.driver.get(self.full_path)
 
             try:
@@ -96,10 +93,8 @@ class Crawler:
 
         for sn, item_url in enumerate(self.item_urls):
             all_SN.append(sn+1)
-            print(item_url)
             self.driver = self.selenium.get_driver()
             self.driver.get(item_url)
-            print('scrapping url:{}'.format(item_url))
             try:
                 WebDriverWait(self.driver, 100).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "productPlainImage_custom"))
@@ -201,13 +196,11 @@ class Crawler:
             try:
                 el = self.driver.find_element(By.CLASS_NAME, 'fs-c-productNumber__number')
                 product_item_code = "-".join(el.text.split("-")[:-2])
-                print(product_item_code, sizes, variants_codes)
                 product_ids = list(map(
                     lambda x: "-".join([product_item_code, x]),
                     ["-".join([code, size]) for code in variants_codes for size in sizes]
                 )
                 )
-                print(product_ids)
                 all_product_ids.append(", ".join(product_ids))
             except:
                 all_product_ids.append("")
@@ -279,11 +272,9 @@ class Crawler:
                 els_sku = self.driver.find_elements(By.CLASS_NAME, 'size-table-sku')
 
                 len_ttl = len(els_ttl)-1
-                print(len_ttl)
                 for index, el in enumerate(els_data):
                     if index % len_ttl == 0:
                         size_breakdown = {els_ttl[ind].text: els_data[index + (ind-1)].text for ind in range(1, len(els_ttl))}
-                        print(size_breakdown)
                         if els_sku[index // len_ttl].text.strip() == '3XS':
                             _3xs_sizes = size_breakdown
                         elif els_sku[index // len_ttl].text.strip() == '2XS':
@@ -383,7 +374,6 @@ class Crawler:
             """
             try:
                 els = self.driver.find_elements(By.CLASS_NAME, 'fs-c-reviewList__item')
-                # print(len(els))
                 review_details = [
                     {
                         "reviewer_name": el.find_element(By.CLASS_NAME, "fs-c-reviewer__name__nickname").text,
@@ -410,45 +400,6 @@ class Crawler:
 
             self.driver.quit()
             print('done..')
-
-        print([len(x) for x in [
-            all_SN,
-            all_breadcrumbs,
-            all_product_urls,
-            all_image_urls,
-            all_image_urls_by_variants,
-            all_captions,
-            all_product_names,
-            all_product_ids,
-            all_keywords,
-            all_prices,
-            all_features,
-            all_colors,
-            all_sizes,
-            all_descriptions,
-            all_functions,
-            all_materials,
-            all_weights,
-
-            all_3xs_sizes,
-            all_2xs_sizes,
-            all_xs_sizes,
-            all_s_sizes,
-            all_m_sizes,
-            all_l_sizes,
-            all_xl_sizes,
-            all_xxl_sizes,
-
-            all_36_sizes,
-            all_38_sizes,
-            all_40_sizes,
-            all_42_sizes,
-
-            all_review_scores,
-            all_number_of_reviews,
-            all_review_details,
-            all_products_tags]
-        ])
 
         # appending row
         self.products_data = list(zip(
