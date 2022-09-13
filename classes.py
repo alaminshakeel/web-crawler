@@ -33,10 +33,10 @@ class Crawler:
         self.selenium = Selenium()
 
     def total_page_to_crawl(self):
-        return math.ceil(self.total_items_to_crawl / self.items_per_page)
+        return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
 
     def collect_product_list(self):
-
+        print(self.total_page_to_crawl())
         for page in range(1, self.total_page_to_crawl()):
             print(page)
             self.full_path = self.base_url + self.query_string.format(page)
@@ -51,7 +51,7 @@ class Crawler:
             except:
                 pass
 
-            elems = self.driver.find_elements("xpath", '//div[@class="fs-c-productListItem__image fs-c-productImage"]/a[@href]')
+            elems = self.driver.find_elements(By.XPATH, '//div[@class="fs-c-productListItem__image fs-c-productImage"]/a[@href]')
             for elem in elems:
                 self.item_urls.append(elem.get_attribute("href"))
 
