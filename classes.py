@@ -24,7 +24,7 @@ class Selenium:
 class Crawler:
 
     def __init__(self, base_url, query_string, total_items_to_crawl, items_per_page, category_ids):
-        self.item_urls = []
+        self.item_urls = set()
         self.products_data = []
         self.base_url = base_url
         self.query_string = query_string
@@ -73,7 +73,7 @@ class Crawler:
 
                 elems = self.driver.find_elements(By.XPATH, '//div[@class="product product--thumb"]/a[@href]')
                 for elem in elems:
-                    self.item_urls.append(elem.get_attribute("href"))
+                    self.item_urls.add(elem.get_attribute("href"))
 
 
 
