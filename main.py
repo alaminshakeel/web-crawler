@@ -11,7 +11,7 @@ if __name__ == "__main__":
     QUERY_STRING = os.getenv('QUERY_STRING', '/p/search?page={}')
     TOTAL_PRODUCTS = os.getenv('TOTAL_PRODUCTS', 300)
     PRODUCTS_PER_PAGE = os.getenv('PRODUCTS_PER_PAGE', 30)
-    CATEGORY_IDS = [1, 2]
+    CATEGORY_IDS = [800, 803]
 
     # crawl products
     crawler = Crawler(BASE_URL, QUERY_STRING, TOTAL_PRODUCTS, PRODUCTS_PER_PAGE, CATEGORY_IDS)

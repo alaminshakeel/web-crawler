@@ -34,16 +34,13 @@ class Crawler:
         self.selenium = Selenium()
 
     def total_page_to_crawl(self):
-        # return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
+
         self.driver = self.selenium.get_driver()
         self.driver.get(self.full_path)
-        all_pages = self.driver.find_elements(By.XPATH, '//ul[@class="pager"]/li/a[@data-pageno]')
-        all_pages = [int(el.get_attribute("data-pageno")) for el in all_pages]
-        print(all_pages)
-        self.driver.quit()
-        if all_pages and len(all_pages):
-            return max(all_pages) + 1
-        return 2
+        pagination_text = self.driver.find_elements(By.XPATH, '//div[@id="keyword-product"]/div[@class="cmn-paging clearfix"]/p')[0]
+        self.total_items_to_crawl = int(pagination_text.text.split("件中")[0])
+        print(self.total_items_to_crawl)
+        return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
 
     def get_category_ids(self):
         return self.category_ids
@@ -51,14 +48,14 @@ class Crawler:
     def collect_product_list(self):
         for category_id in self.get_category_ids():
 
-            self.full_path = self.base_url + self.query_string.format(category_id, self.items_per_page, 1)
+            self.full_path = self.base_url + self.query_string.format(category_id, 1)
             print(self.full_path)
             self.driver = self.selenium.get_driver()
             self.driver.get(self.full_path)
 
             try:
                 WebDriverWait(self.driver, 100).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "pager"))
+                    EC.presence_of_element_located((By.CLASS_NAME, "cmn-paging"))
                 )
             except:
                 pass
@@ -66,12 +63,12 @@ class Crawler:
             self.driver.quit()
             for page in range(1, self.total_page_to_crawl()):
 
-                self.full_path = self.base_url + self.query_string.format(category_id, self.items_per_page, page)
+                self.full_path = self.base_url + self.query_string.format(category_id, page)
                 print(self.full_path)
                 self.driver = self.selenium.get_driver()
                 self.driver.get(self.full_path)
 
-                elems = self.driver.find_elements(By.XPATH, '//div[@class="product product--thumb"]/a[@href]')
+                elems = self.driver.find_elements(By.XPATH, '//div[@id="keyword-product-list"]/div/div/div/h3/a[@href]')
                 for elem in elems:
                     self.item_urls.add(elem.get_attribute("href"))
 
