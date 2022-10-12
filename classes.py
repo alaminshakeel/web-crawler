@@ -23,36 +23,60 @@ class Selenium:
 
 class Crawler:
 
-    def __init__(self, base_url, query_string, total_items_to_crawl, items_per_page):
+    def __init__(self, base_url, query_string, total_items_to_crawl, items_per_page, category_ids):
         self.item_urls = []
         self.products_data = []
         self.base_url = base_url
         self.query_string = query_string
         self.total_items_to_crawl = total_items_to_crawl
         self.items_per_page = items_per_page
+        self.category_ids = category_ids
         self.selenium = Selenium()
 
     def total_page_to_crawl(self):
-        return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
+        # return math.ceil(int(self.total_items_to_crawl) / int(self.items_per_page)) + 1
+        self.driver = self.selenium.get_driver()
+        self.driver.get(self.full_path)
+        all_pages = self.driver.find_elements(By.XPATH, '//ul[@class="pager"]/li/a[@data-pageno]')
+        all_pages = [int(el.get_attribute("data-pageno")) for el in all_pages]
+        print(all_pages)
+        self.driver.quit()
+        if all_pages and len(all_pages):
+            return max(all_pages) + 1
+        return 2
+
+    def get_category_ids(self):
+        return self.category_ids
 
     def collect_product_list(self):
-        for page in range(1, self.total_page_to_crawl()):
-            self.full_path = self.base_url + self.query_string.format(page)
+        for category_id in self.get_category_ids():
+
+            self.full_path = self.base_url + self.query_string.format(category_id, self.items_per_page, 1)
+            print(self.full_path)
             self.driver = self.selenium.get_driver()
             self.driver.get(self.full_path)
 
             try:
                 WebDriverWait(self.driver, 100).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "fs-c-productImage"))
+                    EC.presence_of_element_located((By.CLASS_NAME, "pager"))
                 )
             except:
                 pass
 
-            elems = self.driver.find_elements(By.XPATH, '//div[@class="fs-c-productListItem__image fs-c-productImage"]/a[@href]')
-            for elem in elems:
-                self.item_urls.append(elem.get_attribute("href"))
-
             self.driver.quit()
+            for page in range(1, self.total_page_to_crawl()):
+
+                self.full_path = self.base_url + self.query_string.format(category_id, self.items_per_page, page)
+                print(self.full_path)
+                self.driver = self.selenium.get_driver()
+                self.driver.get(self.full_path)
+
+                elems = self.driver.find_elements(By.XPATH, '//div[@class="product product--thumb"]/a[@href]')
+                for elem in elems:
+                    self.item_urls.append(elem.get_attribute("href"))
+
+
+
 
     def scrape_product_contents(self):
         all_SN = []
