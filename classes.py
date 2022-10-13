@@ -23,7 +23,7 @@ class Selenium:
 
 class Crawler:
 
-    def __init__(self, base_url, query_string, total_items_to_crawl, items_per_page, category_ids):
+    def __init__(self, base_url, query_string, total_items_to_crawl, items_per_page, category_ids, _from, _to):
         self.item_urls = set()
         self.products_data = []
         self.base_url = base_url
@@ -31,6 +31,9 @@ class Crawler:
         self.total_items_to_crawl = total_items_to_crawl
         self.items_per_page = items_per_page
         self.category_ids = category_ids
+        self._from = int(_from)
+        self._to = int(_to)
+        # self.file_part = file_name
         self.selenium = Selenium()
 
     def total_page_to_crawl(self):
@@ -45,34 +48,53 @@ class Crawler:
     def get_category_ids(self):
         return self.category_ids
 
-    def collect_product_list(self):
-        for category_id in self.get_category_ids():
+    def collect_product_list(self, _cat, _from, _to, _part):
 
-            self.full_path = self.base_url + self.query_string.format(category_id, 1)
+        process_id = os.getpid()
+        print(f"Process ID : {process_id}")
+
+        item_urls = set()
+
+        # self.full_path = self.base_url + self.query_string.format(category_id, 1)
+        # # print(self.full_path)
+        # self.driver = self.selenium.get_driver()
+        # self.driver.get(self.full_path)
+        #
+        # try:
+        #     WebDriverWait(self.driver, 10).until(
+        #         EC.presence_of_element_located((By.CLASS_NAME, "cmn-paging"))
+        #     )
+        # except:
+        #     pass
+
+        # self.driver.quit()
+        for page in range(_from, _to):
+
+            self.full_path = self.base_url + self.query_string.format(page, _cat)
             print(self.full_path)
             self.driver = self.selenium.get_driver()
             self.driver.get(self.full_path)
 
-            try:
-                WebDriverWait(self.driver, 100).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "cmn-paging"))
-                )
-            except:
-                pass
+            # elems = self.driver.find_elements(By.XPATH, '//div[@id="keyword-product-list"]/div/div/div/h3/a[@href]')
+            elems = self.driver.find_elements(By.XPATH, '//div[@class="rslt-pdt-pic clearfix"]/ul/li/a[@href]')
+            for elem in elems:
+                item_urls.add(elem.get_attribute("href"))
 
-            self.driver.quit()
-            for page in range(1, self.total_page_to_crawl()):
-
-                self.full_path = self.base_url + self.query_string.format(category_id, page)
-                print(self.full_path)
-                self.driver = self.selenium.get_driver()
-                self.driver.get(self.full_path)
-
-                elems = self.driver.find_elements(By.XPATH, '//div[@id="keyword-product-list"]/div/div/div/h3/a[@href]')
-                for elem in elems:
-                    self.item_urls.add(elem.get_attribute("href"))
-
-
+        headers = [
+            "Product URL"
+        ]
+        # "S/L", "Breadcrumbs", "Product URL", "All Images",
+        # "Color wise images", "Caption", "Product Name", "Product Ids",
+        # "KWs", "Price", "Feature", "Colors", "Sizes", "Description",
+        # "Function", "Material", "Weight", "Size - 3XS", "Size - 2XS",
+        # "Size - XS", "Size - S", "Size - M", "Size - L", "Size - XL",
+        # "Size - XXL", "Size - 36", "Size - 38", "Size - 40", "Size - 42",
+        # "Review Score", "No of Reviews", "Review details", "Tags"
+        # print(item_urls)
+        # export
+        exporter = Exporter(headers, item_urls)
+        # exporter = Exporter(headers, crawler.products_data)
+        exporter.save_as('products_info_cat-'+str(_cat)+'-part-'+str(_part))
 
 
     def scrape_product_contents(self):
@@ -473,4 +495,5 @@ class Exporter:
         df = pd.DataFrame(self.data, columns=self.columns)
 
         # dataset name & columns names
-        df.to_excel('.'.join([file_name, self.to_format]), index=False)
+        df.to_csv('.'.join([file_name, self.to_format]), index=False)
+
