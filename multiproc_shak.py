@@ -35,8 +35,9 @@ def main():
     # crawler.collect_product_list()
 
     # creating processes
-    offset = 1000
-    number_of_processes = (TO // offset) + 1
+    # offset = 1000
+    number_of_processes = 10
+    offset = (TO // number_of_processes) + 1
     for w in range(1, number_of_processes+1):
         # offset = TO//number_of_processes
 
