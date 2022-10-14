@@ -3,8 +3,8 @@ import time
 import queue # imported for using queue.Empty exception
 
 import sys
-from dotenv import load_dotenv
-from pathlib import Path
+# from dotenv import load_dotenv
+# from pathlib import Path
 from classes import *
 
 def main():
